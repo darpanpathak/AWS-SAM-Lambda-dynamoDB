@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Resources:
+  ProductCRUDFunction:
+    Properties:
+      CodeUri: s3://inkloft-backend-products/bebde7b3aa848f4f0a879ed268ecbc78
+      Events:
+        ProductGetAPI:
+          Properties:
+            Method: ANY
+            Path: /product/{productId}
+          Type: Api
+        ProductPostAPI:
+          Properties:
+            Method: POST
+            Path: /product
+          Type: Api
+      Handler: index.productHandler
+      Policies:
+      - Statement:
+        - Action:
+          - dynamodb:DeleteItem
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:UpdateItem
+          Effect: Allow
+          Resource:
+            Fn::Join:
+            - ''
+            - - 'arn:aws:dynamodb:'
+              - Ref: AWS::Region
+              - ':'
+              - Ref: AWS::AccountId
+              - :table/inkProductsTable
+        Version: '2012-10-17'
+      Runtime: nodejs8.10
+    Type: AWS::Serverless::Function
+  inkProductsTable:
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: productId
+        AttributeType: S
+      KeySchema:
+      - AttributeName: productId
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: inkProductsTable
+    Type: AWS::DynamoDB::Table
+Transform: AWS::Serverless-2016-10-31
